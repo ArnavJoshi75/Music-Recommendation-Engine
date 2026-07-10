@@ -1,0 +1,38 @@
+# Virtual Environment
+venv/
+env/
+.env
+.venv/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Datasets and Raw Audio
+Dataset/
+*.wav
+*.mp3
+*.flac
+*.dat
+my.dat
+
+# Saved Models and Embeddings (Too large for Git)
+*.keras
+*.h5
+*.keras.bak
+*.pb
+recommendation_engine/embeddings.npy
+recommendation_engine/track_ids.npy
+
+# Visualizations, Logs, and Reports
+visualizations/
+logs/
+*.docx
+*.pdf
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
