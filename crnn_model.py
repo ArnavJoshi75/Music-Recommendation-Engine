@@ -22,7 +22,7 @@ def build_crnn_model(input_shape, num_classes):
         # --- CNN Component (Extracts spatial/timbral features from the spectrogram) ---
         
         # Block 1
-        Conv2D(32, (3, 3), padding='same', kernel_regularizer=l2(1e-4)),
+        Conv2D(32, (5, 5), padding='same', kernel_regularizer=l2(1e-4)),
         BatchNormalization(),
         ReLU(),
         MaxPooling2D((2, 2)),
@@ -72,8 +72,8 @@ def build_crnn_model(input_shape, num_classes):
     
     # Compile the model
     model.compile(
-        optimizer='adam', 
-        loss='categorical_crossentropy', 
+        optimizer=tf.keras.optimizers.AdamW(learning_rate=0.001, weight_decay=1e-4), 
+        loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=0.1), 
         metrics=['accuracy']
     )
     

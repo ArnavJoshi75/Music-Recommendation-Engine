@@ -61,7 +61,7 @@ class FmaDataGenerator(tf.keras.utils.Sequence):
     Custom Data Generator for FMA Dataset.
     Dynamically loads audio files and computes Mel-spectrograms.
     """
-    def __init__(self, track_ids, labels, data_dir, batch_size=32, sr=22050, duration=30, n_mels=128, n_fft=2048, hop_length=512, shuffle=True, augment=False):
+    def __init__(self, track_ids, labels, data_dir, batch_size=32, sr=22050, duration=30, n_mels=128, n_fft=2048, hop_length=512, shuffle=True, augment=False, mixup=False):
         self.track_ids = track_ids
         self.labels = labels
         self.data_dir = data_dir
@@ -73,6 +73,7 @@ class FmaDataGenerator(tf.keras.utils.Sequence):
         self.hop_length = hop_length
         self.shuffle = shuffle
         self.augment = augment
+        self.mixup = mixup
         self.on_epoch_end()
 
     def __len__(self):
@@ -86,6 +87,20 @@ class FmaDataGenerator(tf.keras.utils.Sequence):
         batch_labels = [self.labels[k] for k in indexes]
 
         X, y = self.__data_generation(batch_ids, batch_labels)
+        
+        # Apply Mixup Augmentation on the batch level
+        if self.augment and self.mixup and X.shape[0] > 1:
+            alpha = 0.2
+            lam = np.random.beta(alpha, alpha)
+            batch_size = X.shape[0]
+            index_mix = np.random.permutation(batch_size)
+            
+            X_mix = X[index_mix]
+            y_mix = y[index_mix]
+            
+            X = lam * X + (1 - lam) * X_mix
+            y = lam * y + (1 - lam) * y_mix
+            
         return X, y
 
     def on_epoch_end(self):
@@ -195,7 +210,8 @@ def prepare_data(metadata_path, fma_small_dir, batch_size=32):
     print(f"Validation samples: {len(X_val)}")
     print(f"Detected {num_classes} classes: {encoder.classes_}")
     
-    train_gen = FmaDataGenerator(X_train, y_train, fma_small_dir, batch_size=batch_size, augment=True)
-    val_gen = FmaDataGenerator(X_val, y_val, fma_small_dir, batch_size=batch_size, shuffle=False, augment=False)
+    # Enable augmentations AND Mixup for the training generator
+    train_gen = FmaDataGenerator(X_train, y_train, fma_small_dir, batch_size=batch_size, augment=True, mixup=True)
+    val_gen = FmaDataGenerator(X_val, y_val, fma_small_dir, batch_size=batch_size, shuffle=False, augment=False, mixup=False)
     
     return train_gen, val_gen, num_classes, encoder
